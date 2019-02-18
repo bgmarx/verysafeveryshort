@@ -4,6 +4,7 @@ defmodule VerySafeVeryShort.Url do
     - sha256
     - key is last 10 digits of sha
   """
+  @enforce_keys [:key, :short_url, :url]
   defstruct [:key, :short_url, :url]
 
   def hash(url) do
