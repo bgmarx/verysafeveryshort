@@ -17,19 +17,21 @@ defmodule VerySafeVeryShort.Router do
       conn.body_params["url"]
       |> Url.hash()
 
-    case Redis.insert(url_struct) do
-      {:ok, %Url{} = url} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(201, Jason.encode!(%{url: url.key}))
-        |> halt
+    key =
+      case Redis.lookup(url_struct.key) do
+        {:error, :not_found} ->
+          Redis.insert(url_struct).key
 
-      :error ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(433, Jason.encode!(%{error: "error"}))
-        |> halt
-    end
+        {:ok, hash} ->
+          key = Enum.at(hash, 1)
+          Redis.increment(hash)
+          key
+      end
+
+    conn
+    |> put_resp_content_type("application/json")
+    |> send_resp(201, Jason.encode!(%{url: key}))
+    |> halt
   end
 
   get "/:url" do
@@ -44,6 +46,7 @@ defmodule VerySafeVeryShort.Router do
 
       {:ok, hash} ->
         key = Enum.at(hash, 3)
+        Redis.increment(hash)
 
         conn
         |> put_resp_header("location", key)
