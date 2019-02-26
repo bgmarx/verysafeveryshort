@@ -9,7 +9,10 @@ defmodule VerySafeVeryShort.Application do
     # List all child processes to be supervised
     children = [
       {Redix, name: :redix},
-      {Plug.Cowboy, scheme: :http, plug: VerySafeVeryShort.Router, options: [port: 4025]}
+      {Plug.Cowboy,
+       scheme: :http,
+       plug: VerySafeVeryShort.Router,
+       options: [port: System.get_env("PORT") || 4000]}
       # Starts a worker by calling: VerySafeVeryShort.Worker.start_link(arg)
       # {VerySafeVeryShort.Worker, arg},
     ]
