@@ -4,12 +4,12 @@ defmodule VerySafeVeryShort.Url do
     - sha256
     - key is last 10 digits of sha
   """
-  @enforce_keys [:key, :short_url, :url]
-  defstruct [:key, :short_url, :url]
+  @enforce_keys [:key, :sha, :url]
+  defstruct [:key, :sha, :url]
 
   def hash(url) do
-    short = shorten(url)
-    %__MODULE__{key: key(short), short_url: short, url: url}
+    sha = sha(url)
+    %__MODULE__{key: key(sha), sha: sha, url: url}
   end
 
   def hash_url(url) do
@@ -18,7 +18,7 @@ defmodule VerySafeVeryShort.Url do
     |> String.downcase()
   end
 
-  defp shorten(url), do: hash_url(url)
+  defp sha(url), do: hash_url(url)
 
   defp key(hash), do: binary_part(hash, 64, -10)
 end

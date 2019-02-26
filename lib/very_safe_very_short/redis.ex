@@ -19,7 +19,7 @@ defmodule VerySafeVeryShort.Redis do
            "key",
            url_struct.key,
            "sha",
-           url_struct.short_url,
+           url_struct.sha,
            "url",
            url_struct.url
          ]) do

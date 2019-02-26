@@ -10,12 +10,12 @@ defmodule VerySafeVeryShortUrlTest do
         |> Base.encode16()
         |> String.downcase()
 
-      assert Url.hash(@url).short_url == hashed
+      assert Url.hash(@url).sha == hashed
     end
 
     test "key is last ten elements of the hash" do
       url_struct = Url.hash(@url)
-      assert url_struct.key == String.slice(url_struct.short_url, 54, 64)
+      assert url_struct.key == String.slice(url_struct.sha, 54, 64)
     end
   end
 end
