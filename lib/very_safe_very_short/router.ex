@@ -1,6 +1,6 @@
 defmodule VerySafeVeryShort.Router do
   use Plug.Router
-  alias VerySafeVeryShort.{Cache, Redis, Url}
+  alias VerySafeVeryShort.{Cache, Lookup, Redis, Url}
 
   plug(:match)
 
@@ -19,7 +19,7 @@ defmodule VerySafeVeryShort.Router do
 
     case Redis.insert(url_struct) do
       {:ok, %Url{} = url} ->
-        Cache.insert(cache(), url)
+        Cache.insert(Cache.cache(), url)
 
         conn
         |> put_resp_content_type("application/json")
@@ -37,7 +37,7 @@ defmodule VerySafeVeryShort.Router do
   get "/:key" do
     key = conn.params["key"]
 
-    case lookup(key) do
+    case Lookup.lookup(key) do
       {:error, :not_found_in_redis} ->
         conn
         |> put_resp_content_type("application/json")
@@ -66,45 +66,5 @@ defmodule VerySafeVeryShort.Router do
     conn
     |> send_resp(404, "")
     |> halt
-  end
-
-  def cache do
-    GenServer.whereis(Cache)
-  end
-
-  def lookup(key) do
-    case local_cache(key) do
-      {:ok, entry} ->
-        {:ok, {:local, entry}}
-
-      {:error, :not_found_in_local_cache} ->
-        redis_lookup(key)
-    end
-  end
-
-  def local_cache(key) do
-    case Cache.lookup(cache(), key) do
-      [] ->
-        {:error, :not_found_in_local_cache}
-
-      entry ->
-        [_ | entry] =
-          entry
-          |> List.first()
-          |> Tuple.to_list()
-
-        {:ok, entry}
-    end
-  end
-
-  def redis_lookup(key) do
-    case Redis.lookup(key) do
-      {:error, :not_found} ->
-        {:error, :not_found_in_redis}
-
-      {:ok, entry} ->
-        Cache.insert(cache(), %{key: Enum.at(entry, 1), url: Enum.at(entry, 3)})
-        {:ok, {:redis, entry}}
-    end
   end
 end

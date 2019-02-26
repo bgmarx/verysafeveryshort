@@ -13,6 +13,10 @@ defmodule VerySafeVeryShort.Cache do
     GenServer.call(pid, {:insert, url_struct})
   end
 
+  def cache do
+    GenServer.whereis(__MODULE__)
+  end
+
   def init(:ok) do
     state = create_table()
     {:ok, state}
@@ -24,7 +28,11 @@ defmodule VerySafeVeryShort.Cache do
   end
 
   def handle_call({:insert, url_struct}, _from, state) do
-    :ets.insert(:local_cache, {url_struct.key, "key", url_struct.key, "url", url_struct.url})
+    :ets.insert(
+      :local_cache,
+      {url_struct.key, "key", url_struct.key, "url", url_struct.url, "sha", url_struct.sha}
+    )
+
     {:reply, url_struct, state}
   end
 
